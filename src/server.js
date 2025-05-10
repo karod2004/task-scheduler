@@ -2,6 +2,7 @@
 
 const app = require('./app');
 const { sequelize } = require('./config/database');
+const { schedulerService } = require('./services/schedulerService');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
@@ -10,8 +11,13 @@ const PORT = process.env.PORT || 3000;
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('Database synced');
+
+        // Start the server
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
+
+            // Start the scheduler service
+            schedulerService.start();
         });
     })
     .catch(err => {
