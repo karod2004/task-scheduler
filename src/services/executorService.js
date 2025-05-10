@@ -1,16 +1,24 @@
 
 
 const Task = require('../models/Task');
+const TaskExecution = require('../models/TaskExecution');
 const { calculateNextRunTime } = require('../utils/cronUtils');
 
 class ExecutorService {
     // Execute a task
     async executeTask(task) {
+        // Create execution record
+        const execution = await TaskExecution.create({
+            taskId: task.id,
+            startTime: new Date(),
+            status: 'running',
+            attempt: task.retryCount + 1
+        });
+
         try {
             console.log(`Executing task: ${task.name} (${task.id})`);
 
-            // Simulate task execution (for demo purposes)
-            // In a real app, this would run the actual task logic
+            // Simulate task execution
             await this.simulateTaskExecution(task);
 
             // Mark task as completed and calculate next run time
@@ -21,9 +29,23 @@ class ExecutorService {
                 retryCount: 0 // Reset retry count on success
             });
 
+            // Update execution record
+            await execution.update({
+                endTime: new Date(),
+                status: 'completed'
+            });
+
             console.log(`Task completed: ${task.name} (${task.id}), next run at: ${nextRunAt}`);
         } catch (error) {
             console.error(`Error executing task ${task.id}:`, error);
+
+            // Update execution record
+            await execution.update({
+                endTime: new Date(),
+                status: 'failed',
+                error: error.message
+            });
+
             await this.handleFailedTask(task, error);
         }
     }
