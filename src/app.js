@@ -18,6 +18,7 @@ testConnection();
 
 // Import and use routes
 app.use('/api/tasks', require('./api/routes/taskRoutes'));
+app.use('/api/scheduler', require('./api/routes/schedulerRoutes'));
 
 // Basic route for testing
 app.get('/', (req, res) => {
